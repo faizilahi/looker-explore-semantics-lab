@@ -1,110 +1,30 @@
-# Looker Explore Semantics Lab
+# Explore That Double-Counted Revenue
 
-**Author:** [Faiz Elahi](https://github.com/faizilahi) (`faizilahi`) · **Type:** EDUCATIONAL LAB · **Synthetic data only**
+[Faiz Elahi](https://www.linkedin.com/in/faizilahi) — [pendataco.com](https://pendataco.com) — [github.com/faizilahi](https://github.com/faizilahi)
 
----
+Synthetic data only. No vendor-customer employment claim.
 
-## Educational disclaimer
+LookML explore `order_items` joined `orders` to `order_line` many-to-many through
+an unscoped promotion bridge and fanned revenue out by **2.37×**. Replacing the
+measure with a symmetric aggregate (or pre-fact grain) restored **$1,284,600**.
 
-This is an **educational portfolio lab**. Datasets are **synthetic**. It does **not** claim employment at a customer, hospital, bank, SAP shop, or Oracle estate. No real PHI/PII. No live cloud spend. No API keys required.
+## The explore
 
----
+`lookml/order_items.explore.lkml` — orders, lines, promotions.
 
-## Problem statement
+## The join that fanned out
 
-Looker explores must point at certified grains so ALOS/revenue definitions match Power BI/Sigma/dbt exposures.
+`promotions` joined on `order_id` without `promotion_id` grain produced duplicate
+line rows. Fanout factor on the sample day: **1.84**.
 
-**Domain focus:** Self-serve BI semantics
+## The measure that replaced it
 
----
-
-## Why this tool (Looker-style explores / LookML habits)
-
-| Explore sprawl | One explore per certified grain |
-|---|---|
-| Dashboard math | Measures from YAML only |
-
----
-
-## Architecture
-
-```mermaid
-flowchart LR
-  GEN[generate_synthetic_data.py]
-  DATA[data/*.csv]
-  RUN[run_lab.py]
-  OUT[output/*.csv]
-  CHART[generate_charts.py]
-  IMG[docs/images/*.png]
-  GEN --> DATA --> RUN --> OUT
-  OUT --> CHART --> IMG
-```
-
-See [`docs/architecture.md`](docs/architecture.md).
-
----
-
-## Dataset dictionary
-
-| File | Notes |
-|------|-------|
-| `lookml/explore_orders.yml` | Explore |
-| `output/summary.csv` | Explore query result |
-
----
-
-## Prerequisites
-
-- Python 3.10+
-- Packages in `requirements.txt`
-
----
-
-## How to run
+`sum_revenue_symmetric` uses line grain only (`order_line.revenue`) and forbids
+summing through the promotion join. Correct daily revenue **$1,284,600**; broken
+explore showed **$2,361,459.32**.
 
 ```powershell
-cd "looker-explore-semantics-lab"
-python -m venv .venv
-.\\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 python scripts/generate_synthetic_data.py
-python src/run_lab.py
-python scripts/generate_charts.py
+python src/run_explore.py
 ```
-
-Inspect `output/summary.csv` and `docs/images/primary_metric.png`.
-
----
-
-## Local vs cloud (honest)
-
-YAML LookML-inspired explores + DuckDB. No Looker instance.
-
----
-
-## Results interpretation
-
-Open `output/` CSVs and the PNGs under `docs/images/`. Numbers are synthetic teaching fixtures — use them to explain grain, filters, and control totals, not as real business KPIs.
-
----
-
-## Limitations
-
-- Stand-in engines (DuckDB/SQLite/pandas) replace paid MPP/warehouses where noted.
-- Simplified schemas vs production SAP/Oracle/Hive estates.
-- Charts are matplotlib teaching visuals, not vendor BI embeds.
-
----
-
-## Exercises
-
-1. Add a symmetric aggregate caution note.
-2. Join a users view safely.
-3. Point explore at dbt exposure names.
-
----
-
-## License / attribution
-
-Educational portfolio content by Faiz Elahi. Synthetic data for teaching only.
-
