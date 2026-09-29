@@ -1,0 +1,8 @@
+name: orders
+view: orders
+default_filters:
+  status: [complete, returned]
+measures:
+  - {name: orders, type: count}
+  - {name: revenue, type: sum, sql: revenue}
+
